@@ -69,6 +69,12 @@ Smart Health Companion solves these problems with **AI-driven guidance, reminder
 - Emergency contact integration
 - Health alerts and notifications
 
+### 🔮 Future Scope
+-  Wearable device integration (Fitbit, smartwatch)
+-  Voice assistant support
+-  Multilingual chatbot for rural outreach
+-  Direct doctor consultations (premium add-on)
+
 ## 🚀 Quick Start
 
 ### Option 1: Automated Setup
@@ -232,49 +238,8 @@ VITE_NODE_ENV=development
 - Secure headers with Helmet
 - Protected routes and API endpoints
 
-## 🚀 Deployment
+---
+##Build by TEAM-"Ghost in the Shell" during HackOdisha 5.0 
 
-### Backend Deployment
-1. Set up MongoDB Atlas or your preferred MongoDB hosting
-2. Update environment variables for production
-3. Deploy to your preferred platform (Heroku, Vercel, AWS, etc.)
-4. Set up email service for notifications
-
-### Frontend Deployment
-1. Update API URL in environment variables
-2. Build the application: `npm run build`
-3. Deploy to your preferred platform (Vercel, Netlify, etc.)
-
-## 🧪 Testing
-
-### Backend
-```bash
-cd backend
-npm test
-```
-
-### Frontend
-```bash
-cd frontend
-npm test
-```
-
-## 📝 Development Commands
-
-### Backend
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm start            # Start production server
-npm run lint         # Run ESLint
-```
-
-### Frontend
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
-npm run lint         # Run ESLint
-```
-**Built with ❤️ for better health and wellness management**
+**Built with ❤️ for better health and wellness management, Because health advice shouldn’t just be accessible — it should be personal, reliable, and always there when you need it**
 
