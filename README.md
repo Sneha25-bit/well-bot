@@ -2,6 +2,24 @@
 
 A comprehensive health and wellness management application built with the MERN stack (MongoDB, Express.js, React, Node.js).
 
+## 🌟 Overview
+Smart Health Companion is a conversational AI web app that makes healthcare guidance **accessible, personalized, and proactive**.  
+It provides instant health advice, tracks symptoms, gives personalized action plans, and supports emergencies with an AI-powered first aid coach.  
+
+This project was built during a hackathon under the **Open Innovation** theme, with the goal of making health support available for everyone, 24/7.  
+
+---
+
+## 🚨 Why This Matters
+- 🌍 Limited access to doctors, especially in rural or urgent situations  
+- ❌ Misinformation from random Google searches  
+- 🕒 No instant, reliable, and personalized health advice  
+- 📅 Missed medicines and lack of wellness tracking  
+
+Smart Health Companion solves these problems with **AI-driven guidance, reminders, and action plans**.  
+
+---
+
 ## ✨ Features
 
 ### 🔐 Authentication & User Management
@@ -262,39 +280,5 @@ npm run build        # Build for production
 npm run preview      # Preview production build
 npm run lint         # Run ESLint
 ```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support and questions:
-- Check the `INTEGRATION_GUIDE.md` for detailed setup instructions
-- Review the API documentation above
-- Check the troubleshooting section in the integration guide
-
-## 🎯 What's Next?
-
-Potential enhancements:
-- Real-time notifications for medicine reminders
-- Push notifications for mobile devices
-- Advanced AI integration with external health APIs
-- Data export/import functionality
-- Multi-language support
-- Advanced analytics and reporting
-- Integration with wearable devices
-- Telemedicine features
-
----
-
 **Built with ❤️ for better health and wellness management**
 
