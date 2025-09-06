@@ -101,10 +101,6 @@ Smart Health Companion solves these problems with **AI-driven guidance, reminder
    npm run dev
    ```
 
-4. **Access Application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000/api
-
 ## 🛠️ Technology Stack
 
 ### Backend
