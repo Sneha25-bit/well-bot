@@ -96,18 +96,34 @@ app.get('/', (req, res) => {
     documentation: '/api/health',
     availableEndpoints: {
       health: '/api/health',
+      test: '/api/test',
       root: '/'
     },
-    databaseStatus: process.env.MONGODB_URI ? 'Will attempt connection' : 'Not configured'
+    databaseStatus: process.env.MONGODB_URI ? 'Will attempt connection' : 'Not configured',
+    corsOrigins: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['*']
+  });
+});
+
+// Test endpoint (always works, no database required)
+app.get('/api/test', (req, res) => {
+  console.log('✅ Test endpoint requested');
+  res.status(200).json({
+    success: true,
+    message: 'Test endpoint working!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    corsOrigins: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['*'],
+    databaseConfigured: !!process.env.MONGODB_URI
   });
 });
 
 // Catch-all for other API routes (before database is connected)
-app.get('/api/*', (req, res) => {
+app.use('/api/*', (req, res) => {
   res.status(503).json({
     success: false,
-    message: 'API endpoints are initializing. Please try again in a moment.',
-    availableNow: ['/api/health', '/']
+    message: 'Database connection required. API endpoints are initializing...',
+    error: 'Database unavailable',
+    availableEndpoints: ['/api/health', '/']
   });
 });
 
@@ -126,55 +142,97 @@ const server = app.listen(PORT, () => {
 async function initializeDatabase() {
   console.log('🔄 Attempting to initialize database and routes...');
   
-  try {
-    // Check if we have database connection string
-    if (!process.env.MONGODB_URI) {
-      console.log('⚠️  MONGODB_URI not found - running without database');
-      console.log('✅ Server ready (health-check mode only)');
-      return;
-    }
+  const maxRetries = 3;
+  const retryDelay = 5000; // 5 seconds
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      // Check if we have database connection string
+      if (!process.env.MONGODB_URI) {
+        console.log('⚠️  MONGODB_URI not found - running without database');
+        console.log('✅ Server ready (health-check mode only)');
+        return;
+      }
 
-    console.log('🔗 Connecting to database...');
+      console.log(`🔗 Connecting to database... (Attempt ${attempt}/${maxRetries})`);
+      console.log('📍 MongoDB URI exists:', !!process.env.MONGODB_URI);
+      
+      // Import and connect to database
+      const { default: connectDB } = await import('./config/database');
+      await connectDB();
+      
+      console.log('📚 Loading API routes...');
+      
+      // Import routes
+      const { default: routes } = await import('./routes');
+      
+      // Remove the temporary catch-all handler
+      const routeStack = app._router?.stack || [];
+      app._router.stack = routeStack.filter((layer: any) => {
+        return !(layer.regexp && layer.regexp.toString().includes('/api/'));
+      });
+      
+      // Add real routes
+      app.use('/api', routes);
+      
+      console.log('🛡️  Loading error handlers...');
+      const { errorHandler, notFound } = await import('./middleware/errorHandler');
+      app.use(notFound);
+      app.use(errorHandler);
+      
+      console.log('✅ Full application initialized successfully!');
+      return; // Success - exit the retry loop
+      
+    } catch (error) {
+      console.error(`❌ Database initialization failed (attempt ${attempt}/${maxRetries}):`, error);
+      
+      if (attempt < maxRetries) {
+        console.log(`⏳ Retrying in ${retryDelay/1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      } else {
+        console.log('⚠️  All retry attempts failed. Starting with limited functionality...');
+        await loadFallbackRoutes();
+      }
+    }
+  }
+}
+
+async function loadFallbackRoutes() {
+  try {
+    console.log('📚 Loading fallback routes without database dependency...');
     
-    // Import and connect to database
-    const { default: connectDB } = await import('./config/database');
-    await connectDB();
-    
-    console.log('📚 Loading API routes...');
-    
-    // Import routes
-    const { default: routes } = await import('./routes');
-    
-    // Remove the temporary catch-all handler
-    app._router.stack = app._router.stack.filter((layer: any) => {
-      return !(layer.route && layer.route.path === '/api/*');
+    // Create basic auth endpoints that don't require database
+    app.post('/api/auth/register', (req, res) => {
+      res.status(503).json({
+        success: false,
+        message: 'Registration temporarily unavailable - database connection required',
+        error: 'Database unavailable'
+      });
     });
     
-    // Add real routes
-    app.use('/api', routes);
+    app.post('/api/auth/login', (req, res) => {
+      res.status(503).json({
+        success: false,
+        message: 'Login temporarily unavailable - database connection required',
+        error: 'Database unavailable'
+      });
+    });
     
-    console.log('🛡️  Loading error handlers...');
-    const { errorHandler, notFound } = await import('./middleware/errorHandler');
-    app.use(notFound);
-    app.use(errorHandler);
-    
-    console.log('✅ Full application initialized successfully!');
-    
-  } catch (error) {
-    console.error('❌ Database initialization failed:', error);
-    console.log('⚠️  Continuing in health-check mode...');
-    
-    // Add fallback routes for when database fails
+    // Generic fallback for other API routes
     app.use('/api/*', (req, res) => {
       res.status(503).json({
         success: false,
-        message: 'Database connection failed - service running in limited mode',
+        message: 'API endpoint temporarily unavailable - database connection required',
         error: 'Database unavailable',
+        endpoint: req.path,
         availableEndpoints: ['/api/health', '/']
       });
     });
     
-    console.log('✅ Server ready (limited mode - health checks only)');
+    console.log('✅ Fallback routes loaded');
+    
+  } catch (error) {
+    console.error('❌ Failed to load fallback routes:', error);
   }
 }
 
