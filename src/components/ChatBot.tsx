@@ -4,6 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, User, Send, Stethoscope, ShieldAlert, Heart } from "lucide-react";
+import Header from "./Header";
+import Footer from "./Footer";
 
 interface Message {
   id: string;
@@ -78,18 +80,16 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="min-h-screen soft-gradient p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-6 animate-fade-in-up">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="hero-gradient w-12 h-12 rounded-2xl flex items-center justify-center">
-              <Bot className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">AI Health Assistant</h1>
-          </div>
-          <p className="text-lg text-muted-foreground">
-            Get instant health advice and symptom guidance
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <Header />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-3">
+            <Bot className="w-8 h-8 text-primary animate-pulse-soft" />
+            AI Health Assistant
+          </h1>
+          <p className="text-muted-foreground">
+            Chat with our AI for health guidance, symptom checking, and personalized advice
           </p>
         </div>
 
@@ -179,6 +179,7 @@ const ChatBot = () => {
           </div>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 };

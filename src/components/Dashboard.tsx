@@ -10,66 +10,69 @@ import {
   Bot,
   ShieldAlert
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   const features = [
     {
       title: "Chat with AI Doctor",
       description: "Get instant health advice and symptom checking",
       icon: MessageCircle,
       gradient: "hero-gradient",
-      action: () => window.location.href = '/chat'
+      action: () => navigate('/chat')
     },
     {
       title: "First Aid Coach",
       description: "Emergency guidance for critical situations",
       icon: ShieldAlert,
       gradient: "bg-destructive",
-      action: () => console.log("Navigate to first aid")
+      action: () => navigate('/first-aid')
     },
     {
       title: "Medicine Reminder",
       description: "Never miss your medications again",
       icon: Pill,
       gradient: "wellness-gradient",
-      action: () => console.log("Navigate to medicine")
+      action: () => navigate('/medicine')
     },
     {
       title: "Period Tracker",
       description: "Track your cycle and get health insights",
       icon: Calendar,
       gradient: "bg-accent",
-      action: () => console.log("Navigate to period tracker")
+      action: () => navigate('/period-tracker')
     },
     {
       title: "3-Day Health Plan",
       description: "Get personalized health action plans",
       icon: ShieldCheck,
       gradient: "hero-gradient",
-      action: () => console.log("Navigate to health plan")
+      action: () => navigate('/plan')
     },
     {
       title: "Health Profile",
       description: "Manage your health information and settings",
       icon: UserCircle,
       gradient: "bg-secondary",
-      action: () => console.log("Navigate to profile")
+      action: () => navigate('/profile')
     }
   ];
 
   return (
-    <div className="min-h-screen soft-gradient p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8 animate-fade-in-up">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="hero-gradient w-12 h-12 rounded-2xl flex items-center justify-center">
-              <Bot className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">Health Dashboard</h1>
-          </div>
-          <p className="text-lg text-muted-foreground">
-            Welcome back! How can I help you stay healthy today?
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      <Header />
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-4 flex items-center justify-center gap-3">
+            <Heart className="w-10 h-10 text-primary animate-pulse-soft" />
+            Welcome to Your Dashboard
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Your personal health assistant, ready to help you stay healthy and informed.
           </p>
         </div>
 
@@ -146,6 +149,7 @@ const Dashboard = () => {
           </Button>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
