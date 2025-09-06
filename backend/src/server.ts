@@ -102,7 +102,7 @@ app.get('/', (req, res) => {
     databaseStatus: process.env.MONGODB_URI ? 'Will attempt connection' : 'Not configured',
     corsOrigins: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['*']
   });
-
+});
 
 // Debug endpoint for MongoDB connection issues
 app.get('/api/debug', async (req, res) => {
