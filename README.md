@@ -239,7 +239,7 @@ VITE_NODE_ENV=development
 - Protected routes and API endpoints
 
 ---
-##Build by TEAM-"Ghost in the Shell" during HackOdisha 5.0 
+## Build by TEAM-"Ghost in the Shell" during HackOdisha 5.0 
 
 **Built with ❤️ for better health and wellness management, Because health advice shouldn’t just be accessible — it should be personal, reliable, and always there when you need it**
 
