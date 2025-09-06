@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_API_URL": "@vite-api-url",
+    "VITE_APP_NAME": "@vite-app-name",
+    "VITE_APP_VERSION": "@vite-app-version",
+    "VITE_NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "VITE_API_URL": "@vite-api-url",
+      "VITE_APP_NAME": "@vite-app-name",
+      "VITE_APP_VERSION": "@vite-app-version",
+      "VITE_NODE_ENV": "production"
+    }
+  },
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "outputDirectory": "./dist"
+}
