@@ -32,7 +32,7 @@ const sendTokenResponse = (user: IUser, statusCode: number, res: Response) => {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'strict' as const
   };
 
   res.status(statusCode)

@@ -1,0 +1,23 @@
+🚀 RENDER ENVIRONMENT VARIABLES TO UPDATE:
+
+Go to Render Dashboard → Your Backend Service → Environment Tab
+
+Add/Update these variables:
+
+MONGODB_URI=mongodb+srv://wellnessbot-user:YOUR_PASSWORD@cluster0.xxxxx.mongodb.net/wellness-bot?retryWrites=true&w=majority
+
+NODE_ENV=production
+
+JWT_SECRET=1c2ef7b5f5ebe6af30f9b24a6db2726249ebcf7f6acfb9c31f62a3e8ed4340da36323b08aa05e23e518ff06e9600d0b743f3a2a00dddbe7b2d94abe52d21d5bc
+
+JWT_REFRESH_SECRET=757b688034374c8e82bcfbd39e77f27e309c1f4f737a8add274e566f469fcc3ada3ce204c997f5a8856a14e0401d748d29f407f5db360ca162685c1983835094
+
+CORS_ORIGIN=https://well-bot-git-main-snehas-projects-66b9b640.vercel.app,https://well-bot-pi.vercel.app
+
+FRONTEND_URL=https://well-bot-pi.vercel.app
+
+GEMINI_API_KEY=AIzaSyC3eydIIyU5LuoBfSJVZiLD5EoB6xWPJaE
+
+PORT=10000
+
+Then click "Save Changes" to trigger redeploy.

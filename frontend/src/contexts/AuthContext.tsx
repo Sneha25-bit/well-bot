@@ -94,8 +94,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await apiService.login({ email, password });
-      if (response.success && response.user) {
-        setUser(response.user);
+      if (response.success && (response.user || response.data?.user)) {
+        const user = response.user || response.data?.user;
+        setUser(user as User);
       } else {
         throw new Error(response.message || 'Login failed');
       }
@@ -114,8 +115,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }) => {
     try {
       const response = await apiService.register(userData);
-      if (response.success && response.user) {
-        setUser(response.user);
+      if (response.success && (response.user || response.data?.user)) {
+        const user = response.user || response.data?.user;
+        setUser(user as User);
       } else {
         throw new Error(response.message || 'Registration failed');
       }

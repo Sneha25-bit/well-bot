@@ -11,6 +11,11 @@ export interface AuthResponse extends ApiResponse {
   token?: string;
   refreshToken?: string;
   user?: unknown;
+  data?: {
+    token?: string;
+    refreshToken?: string;
+    user?: unknown;
+  };
 }
 
 class ApiService {
@@ -44,16 +49,26 @@ class ApiService {
     }
 
     try {
+      console.log('Making API request to:', url);
       const response = await fetch(url, config);
-      const data = await response.json();
-
+      
       if (!response.ok) {
-        throw new Error(data.message || 'An error occurred');
+        const errorText = await response.text();
+        console.error(`API Error [${response.status}]:`, errorText);
+        try {
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.message || `Server error: ${response.status}`);
+        } catch {
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
       }
-
+      
+      const data = await response.json();
+      console.log('API response:', data);
       return data;
     } catch (error) {
       console.error('API request failed:', error);
+      console.error('Request details:', { url, method: config.method });
       throw error;
     }
   }
@@ -71,8 +86,9 @@ class ApiService {
       body: JSON.stringify(userData),
     });
 
-    if (response.success && response.data?.token) {
-      this.setToken(response.data.token);
+    if (response.success && (response.token || response.data?.token)) {
+      const token = response.token || response.data?.token;
+      this.setToken(token);
     }
 
     return response;
@@ -84,8 +100,9 @@ class ApiService {
       body: JSON.stringify(credentials),
     });
 
-    if (response.success && response.data?.token) {
-      this.setToken(response.data.token);
+    if (response.success && (response.token || response.data?.token)) {
+      const token = response.token || response.data?.token;
+      this.setToken(token);
     }
 
     return response;

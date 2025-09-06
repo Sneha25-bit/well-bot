@@ -281,3 +281,4 @@ process.on('uncaughtException', (error) => {
 console.log('🎯 Server initialization complete - waiting for requests...');
 
 export default app;
+// Force redeploy Sun Sep  7 03:40:31 IST 2025
