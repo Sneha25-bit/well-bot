@@ -8,6 +8,17 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
 import connectDB from './config/database';
+
+// Suppress mongoose warnings in production
+if (process.env.NODE_ENV === 'production') {
+  process.on('warning', (warning) => {
+    if (warning.name === 'MONGOOSE') {
+      // Suppress mongoose warnings in production
+      return;
+    }
+    console.warn(warning);
+  });
+}
 import routes from './routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
