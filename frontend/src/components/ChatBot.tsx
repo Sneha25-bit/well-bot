@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, User, Send, Stethoscope, ShieldAlert, Heart } from "lucide-react";
+import { Bot, User, Send, Stethoscope, ShieldAlert, Heart, Loader2 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import apiService from "../services/api";
 import Header from "./Header";
 import Footer from "./Footer";
 
@@ -12,9 +14,12 @@ interface Message {
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+  messageType?: string;
+  metadata?: Record<string, unknown>;
 }
 
 const ChatBot = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -24,6 +29,26 @@ const ChatBot = () => {
     }
   ]);
   const [inputMessage, setInputMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const createSession = async () => {
+      try {
+        const response = await apiService.createChatSession({
+          title: 'Health Chat Session',
+          sessionType: 'general'
+        });
+        if (response.success && response.session) {
+          setCurrentSessionId(response.session._id);
+        }
+      } catch (error) {
+        console.error('Failed to create chat session:', error);
+      }
+    };
+
+    createSession();
+  }, []);
 
   const quickActions = [
     { text: "Check my symptoms", icon: Stethoscope },
@@ -31,8 +56,8 @@ const ChatBot = () => {
     { text: "Show my health plan", icon: Heart }
   ];
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || !currentSessionId) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -42,18 +67,50 @@ const ChatBot = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = inputMessage;
     setInputMessage("");
+    setIsLoading(true);
 
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      // Save user message to backend
+      await apiService.addMessage(currentSessionId, {
+        text: currentMessage,
+        sender: 'user',
+        messageType: 'text'
+      });
+
+      // Get AI response (simplified - in real app, this would call AI service)
+      const botResponseText = getBotResponse(currentMessage);
+      
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: getBotResponse(inputMessage),
+        text: botResponseText,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, botResponse]);
+
+      // Save bot response to backend
+      await apiService.addMessage(currentSessionId, {
+        text: botResponseText,
+        sender: 'bot',
+        messageType: 'text'
+      });
+
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      // Still show the bot response even if backend fails
+      const botResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: getBotResponse(currentMessage),
         sender: 'bot',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getBotResponse = (userInput: string): string => {
@@ -76,7 +133,7 @@ const ChatBot = () => {
 
   const handleQuickAction = (actionText: string) => {
     setInputMessage(actionText);
-    handleSendMessage();
+    // Don't call handleSendMessage here as it will be called when user presses enter or send
   };
 
   return (
@@ -171,9 +228,13 @@ const ChatBot = () => {
                 onClick={handleSendMessage}
                 variant="hero"
                 size="icon"
-                disabled={!inputMessage.trim()}
+                disabled={!inputMessage.trim() || isLoading}
               >
-                <Send className="w-4 h-4" />
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>

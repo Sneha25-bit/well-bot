@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { User, Heart, Activity, Calendar, AlertCircle, Edit, Save, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { User, Heart, Activity, Calendar, AlertCircle, Edit, Save, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,68 +8,106 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "../contexts/AuthContext";
+import apiService from "../services/api";
 import Header from "./Header";
 import Footer from "./Footer";
 
-interface HealthData {
-  name: string;
-  age: number;
-  gender: string;
-  height: string;
-  weight: string;
-  bloodType: string;
-  allergies: string[];
-  medications: string[];
-  chronicConditions: string[];
-  emergencyContact: {
-    name: string;
-    phone: string;
-    relationship: string;
-  };
-  preferences: {
-    periodTracker: boolean;
-    medicineReminders: boolean;
-    healthInsights: boolean;
-  };
-}
-
 const HealthProfile = () => {
+  const { user, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [healthData, setHealthData] = useState<HealthData>({
-    name: "Sarah Johnson",
-    age: 28,
-    gender: "Female",
-    height: "5'6\"",
-    weight: "130 lbs",
-    bloodType: "O+",
-    allergies: ["Peanuts", "Shellfish"],
-    medications: ["Vitamin D", "Iron Supplement"],
-    chronicConditions: ["Mild Anemia"],
-    emergencyContact: {
-      name: "John Johnson",
-      phone: "+1 (555) 123-4567",
-      relationship: "Spouse"
+  const [isLoading, setIsLoading] = useState(false);
+  const [editData, setEditData] = useState({
+    name: user?.name || "",
+    age: user?.age || 0,
+    gender: user?.gender || "",
+    height: user?.height || "",
+    weight: user?.weight || "",
+    bloodType: user?.bloodType || "",
+    allergies: user?.allergies || [],
+    medications: user?.medications || [],
+    chronicConditions: user?.chronicConditions || [],
+    emergencyContact: user?.emergencyContact || {
+      name: "",
+      phone: "",
+      relationship: ""
     },
-    preferences: {
-      periodTracker: true,
+    preferences: user?.preferences || {
+      periodTracker: false,
       medicineReminders: true,
-      healthInsights: true
+      healthInsights: true,
+      notifications: true
     }
   });
 
-  const [editData, setEditData] = useState<HealthData>(healthData);
+  useEffect(() => {
+    if (user) {
+      setEditData({
+        name: user.name || "",
+        age: user.age || 0,
+        gender: user.gender || "",
+        height: user.height || "",
+        weight: user.weight || "",
+        bloodType: user.bloodType || "",
+        allergies: user.allergies || [],
+        medications: user.medications || [],
+        chronicConditions: user.chronicConditions || [],
+        emergencyContact: user.emergencyContact || {
+          name: "",
+          phone: "",
+          relationship: ""
+        },
+        preferences: user.preferences || {
+          periodTracker: false,
+          medicineReminders: true,
+          healthInsights: true,
+          notifications: true
+        }
+      });
+    }
+  }, [user]);
 
-  const handleSave = () => {
-    setHealthData(editData);
-    setIsEditing(false);
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      await updateProfile(editData);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCancel = () => {
-    setEditData(healthData);
+    if (user) {
+      setEditData({
+        name: user.name || "",
+        age: user.age || 0,
+        gender: user.gender || "",
+        height: user.height || "",
+        weight: user.weight || "",
+        bloodType: user.bloodType || "",
+        allergies: user.allergies || [],
+        medications: user.medications || [],
+        chronicConditions: user.chronicConditions || [],
+        emergencyContact: user.emergencyContact || {
+          name: "",
+          phone: "",
+          relationship: ""
+        },
+        preferences: user.preferences || {
+          periodTracker: false,
+          medicineReminders: true,
+          healthInsights: true,
+          notifications: true
+        }
+      });
+    }
     setIsEditing(false);
   };
 
-  const updatePreference = (key: keyof HealthData['preferences'], value: boolean) => {
+  const updatePreference = (key: keyof typeof editData.preferences, value: boolean) => {
     setEditData({
       ...editData,
       preferences: {
@@ -108,12 +146,12 @@ const HealthProfile = () => {
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-2xl font-bold">
-                    {healthData.name.split(' ').map(n => n[0]).join('')}
+                    {(user?.name || 'User').split(' ').map(n => n[0]).join('')}
                   </div>
                   <div>
-                    <CardTitle className="text-2xl">{healthData.name}</CardTitle>
+                    <CardTitle className="text-2xl">{user?.name || 'User'}</CardTitle>
                     <CardDescription>
-                      {healthData.age} years old • {healthData.gender} • Blood Type: {healthData.bloodType}
+                      {user?.age || 0} years old • {user?.gender || 'Not specified'} • Blood Type: {user?.bloodType || 'Not specified'}
                     </CardDescription>
                   </div>
                 </div>
@@ -203,23 +241,23 @@ const HealthProfile = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="font-medium">Age:</span>
-                      <span>{healthData.age} years</span>
+                      <span>{user?.age || 0} years</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Gender:</span>
-                      <span>{healthData.gender}</span>
+                      <span>{user?.gender || 'Not specified'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Height:</span>
-                      <span>{healthData.height}</span>
+                      <span>{user?.height || 'Not specified'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Weight:</span>
-                      <span>{healthData.weight}</span>
+                      <span>{user?.weight || 'Not specified'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Blood Type:</span>
-                      <span>{healthData.bloodType}</span>
+                      <span>{user?.bloodType || 'Not specified'}</span>
                     </div>
                   </div>
                 )}
@@ -261,32 +299,32 @@ const HealthProfile = () => {
                 <div>
                   <Label className="text-sm font-medium">Allergies</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {healthData.allergies.map((allergy, index) => (
+                    {user?.allergies?.map((allergy, index) => (
                       <Badge key={index} variant="destructive">
                         <AlertCircle className="w-3 h-3 mr-1" />
                         {allergy}
                       </Badge>
-                    ))}
+                    )) || <span className="text-muted-foreground">No allergies recorded</span>}
                   </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Current Medications</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {healthData.medications.map((medication, index) => (
+                    {user?.medications?.map((medication, index) => (
                       <Badge key={index} variant="secondary">
                         {medication}
                       </Badge>
-                    ))}
+                    )) || <span className="text-muted-foreground">No medications recorded</span>}
                   </div>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Chronic Conditions</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {healthData.chronicConditions.map((condition, index) => (
+                    {user?.chronicConditions?.map((condition, index) => (
                       <Badge key={index} variant="outline">
                         {condition}
                       </Badge>
-                    ))}
+                    )) || <span className="text-muted-foreground">No chronic conditions recorded</span>}
                   </div>
                 </div>
               </CardContent>
@@ -303,15 +341,15 @@ const HealthProfile = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="font-medium">Name:</span>
-                  <span>{healthData.emergencyContact.name}</span>
+                  <span>{user?.emergencyContact?.name || 'Not specified'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Phone:</span>
-                  <span>{healthData.emergencyContact.phone}</span>
+                  <span>{user?.emergencyContact?.phone || 'Not specified'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Relationship:</span>
-                  <span>{healthData.emergencyContact.relationship}</span>
+                  <span>{user?.emergencyContact?.relationship || 'Not specified'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -356,17 +394,36 @@ const HealthProfile = () => {
                   onCheckedChange={(checked) => updatePreference('healthInsights', checked)}
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-base">Notifications</Label>
+                  <p className="text-sm text-muted-foreground">Receive app notifications</p>
+                </div>
+                <Switch
+                  checked={editData.preferences.notifications}
+                  onCheckedChange={(checked) => updatePreference('notifications', checked)}
+                />
+              </div>
             </CardContent>
           </Card>
 
           {/* Save Button */}
           {isEditing && (
             <div className="flex justify-center gap-4 mt-6">
-              <Button onClick={handleSave} size="lg">
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
+              <Button onClick={handleSave} size="lg" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
-              <Button variant="outline" onClick={handleCancel} size="lg">
+              <Button variant="outline" onClick={handleCancel} size="lg" disabled={isLoading}>
                 Cancel
               </Button>
             </div>

@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -8,14 +9,47 @@ import {
   ShieldCheck, 
   UserCircle,
   Bot,
-  ShieldAlert
+  ShieldAlert,
+  Loader2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import apiService from "../services/api";
+import { DashboardStats } from "../types/dashboard";
 import Header from "./Header";
 import Footer from "./Footer";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalMedicines: 5,
+    activeMedicines: 3,
+    medicinesTakenToday: 2,
+    upcomingReminders: 1,
+    healthScore: 85,
+    activeHealthPlans: 1,
+    completedTasks: 8,
+    totalTasks: 12
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await apiService.getDashboardData();
+        if (response.success && response.data) {
+          setStats((response.data as { stats: DashboardStats }).stats);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
   
   const features = [
     {
@@ -69,7 +103,7 @@ const Dashboard = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-4 flex items-center justify-center gap-3">
             <Heart className="w-10 h-10 text-primary animate-pulse-soft" />
-            Welcome to Your Dashboard
+            Welcome back, {user?.name || 'User'}!
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Your personal health assistant, ready to help you stay healthy and informed.
@@ -84,7 +118,11 @@ const Dashboard = () => {
                 <Heart className="w-6 h-6 text-white" />
               </div>
               <h3 className="font-semibold text-foreground">Health Score</h3>
-              <p className="text-2xl font-bold text-primary">85%</p>
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mt-2" />
+              ) : (
+                <p className="text-2xl font-bold text-primary">{stats.healthScore}%</p>
+              )}
             </CardContent>
           </Card>
           
@@ -94,7 +132,11 @@ const Dashboard = () => {
                 <Pill className="w-6 h-6 text-white" />
               </div>
               <h3 className="font-semibold text-foreground">Medications</h3>
-              <p className="text-2xl font-bold text-secondary">3 Active</p>
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mt-2" />
+              ) : (
+                <p className="text-2xl font-bold text-secondary">{stats.activeMedicines} Active</p>
+              )}
             </CardContent>
           </Card>
           
@@ -103,8 +145,12 @@ const Dashboard = () => {
               <div className="bg-accent w-12 h-12 rounded-full mx-auto flex items-center justify-center mb-3">
                 <MessageCircle className="w-6 h-6 text-white" />
               </div>
-              <h3 className="font-semibold text-foreground">Chat Sessions</h3>
-              <p className="text-2xl font-bold text-accent">12 Today</p>
+              <h3 className="font-semibold text-foreground">Tasks Completed</h3>
+              {isLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mt-2" />
+              ) : (
+                <p className="text-2xl font-bold text-accent">{stats.completedTasks} Completed</p>
+              )}
             </CardContent>
           </Card>
         </div>

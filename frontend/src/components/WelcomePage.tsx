@@ -1,13 +1,23 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, Shield, Stethoscope } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const WelcomePage = () => {
   const [isAnimated, setIsAnimated] = useState(false);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     setTimeout(() => setIsAnimated(true), 100);
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen soft-gradient flex items-center justify-center p-4">
@@ -47,16 +57,26 @@ const WelcomePage = () => {
           </div>
         </div>
 
-        {/* CTA Button */}
-        <Button 
-          variant="hero" 
-          size="lg" 
-          className="w-full max-w-sm mx-auto"
-          onClick={() => window.location.href = '/setup'}
-        >
-          Get Started
-          <Heart className="ml-2 w-5 h-5" />
-        </Button>
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm mx-auto">
+          <Button 
+            variant="hero" 
+            size="lg" 
+            className="flex-1"
+            onClick={() => navigate('/register')}
+          >
+            Get Started
+            <Heart className="ml-2 w-5 h-5" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="flex-1"
+            onClick={() => navigate('/login')}
+          >
+            Sign In
+          </Button>
+        </div>
 
         {/* Trust Indicator */}
         <p className="text-sm text-muted-foreground mt-6 opacity-75">
