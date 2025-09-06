@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: wellness-bot-backend
+    env: node  
+    plan: free
+    buildCommand: npm install && npm run build && echo "Build successful - files in dist:" && ls -la dist/
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000

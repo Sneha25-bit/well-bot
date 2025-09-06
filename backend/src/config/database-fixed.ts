@@ -29,7 +29,7 @@ const connectDB = async (): Promise<void> => {
     console.log(`📊 Database: ${conn.connection.name}`);
     
     // Only create indexes in development or when explicitly needed
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production' && mongoose.connection.db) {
       console.log('🔧 Creating database indexes...');
       await mongoose.connection.db.admin().command({ listCollections: 1 });
     }
