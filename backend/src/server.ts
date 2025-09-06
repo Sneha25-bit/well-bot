@@ -108,7 +108,27 @@ app.get('/', (req, res) => {
 app.get('/api/debug', async (req, res) => {
   console.log('🔍 Debug endpoint requested');
   
-  const debug = {
+  const debug: {
+    success: boolean;
+    timestamp: string;
+    environment: string | undefined;
+    mongoUri: {
+      exists: boolean;
+      startsWithMongodb: boolean | undefined;
+      containsAtlasCloud: boolean | undefined;
+      hasCredentials: boolean | undefined;
+    };
+    connectionTest: {
+      success: boolean;
+      host?: string;
+      database?: string;
+      readyState?: number;
+      errorName?: string;
+      errorMessage?: string;
+      errorCode?: any;
+      errorCodeName?: any;
+    } | null;
+  } = {
     success: true,
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
@@ -143,19 +163,19 @@ app.get('/api/debug', async (req, res) => {
       
       await mongoose.default.disconnect();
       
-    } catch (error) {
+    } catch (error: any) {
       debug.connectionTest = {
         success: false,
-        errorName: error.name,
-        errorMessage: error.message,
-        errorCode: error.code,
-        errorCodeName: error.codeName
+        errorName: error?.name || 'Unknown',
+        errorMessage: error?.message || 'Unknown error',
+        errorCode: error?.code,
+        errorCodeName: error?.codeName
       };
     }
   }
   
   res.json(debug);
-});});
+});
 
 // Test endpoint (always works, no database required)
 app.get('/api/test', (req, res) => {
