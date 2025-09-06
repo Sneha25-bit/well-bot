@@ -19,7 +19,13 @@ interface Message {
 }
 
 const ChatBot = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  
+  // Debug authentication status
+  useEffect(() => {
+    console.log('ChatBot - User authenticated:', isAuthenticated);
+    console.log('ChatBot - User:', user);
+  }, [isAuthenticated, user]);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -34,13 +40,23 @@ const ChatBot = () => {
 
   useEffect(() => {
     const createSession = async () => {
+      if (!isAuthenticated) {
+        console.log('User not authenticated, skipping session creation');
+        return;
+      }
+      
       try {
+        console.log('Creating chat session...');
         const response = await apiService.createChatSession({
           title: 'Health Chat Session',
           sessionType: 'general'
         });
+        console.log('Chat session response:', response);
         if (response.success && response.session) {
           setCurrentSessionId(response.session._id);
+          console.log('Chat session created successfully:', response.session._id);
+        } else {
+          console.error('Failed to create chat session - invalid response:', response);
         }
       } catch (error) {
         console.error('Failed to create chat session:', error);
@@ -48,7 +64,7 @@ const ChatBot = () => {
     };
 
     createSession();
-  }, []);
+  }, [isAuthenticated]);
 
   const quickActions = [
     { text: "Check my symptoms", icon: Stethoscope },
@@ -57,7 +73,16 @@ const ChatBot = () => {
   ];
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !currentSessionId) return;
+    console.log('handleSendMessage called with:', inputMessage);
+    if (!inputMessage.trim()) {
+      console.log('Message is empty, returning');
+      return;
+    }
+    
+    if (!isAuthenticated) {
+      console.log('User not authenticated, cannot send message');
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -72,14 +97,37 @@ const ChatBot = () => {
     setIsLoading(true);
 
     try {
-      // Save user message to backend
-      await apiService.addMessage(currentSessionId, {
-        text: currentMessage,
-        sender: 'user',
-        messageType: 'text'
-      });
+      // Try to create session if it doesn't exist
+      let sessionId = currentSessionId;
+      if (!sessionId) {
+        try {
+          const response = await apiService.createChatSession({
+            title: 'Health Chat Session',
+            sessionType: 'general'
+          });
+          if (response.success && response.session) {
+            sessionId = response.session._id;
+            setCurrentSessionId(sessionId);
+          }
+        } catch (sessionError) {
+          console.error('Failed to create chat session:', sessionError);
+        }
+      }
 
-      // Get AI response (simplified - in real app, this would call AI service)
+      // Save user message to backend if we have a session
+      if (sessionId) {
+        try {
+          await apiService.addMessage(sessionId, {
+            text: currentMessage,
+            sender: 'user',
+            messageType: 'text'
+          });
+        } catch (messageError) {
+          console.error('Failed to save user message:', messageError);
+        }
+      }
+
+      // Get AI response
       const botResponseText = getBotResponse(currentMessage);
       
       const botResponse: Message = {
@@ -91,12 +139,18 @@ const ChatBot = () => {
 
       setMessages(prev => [...prev, botResponse]);
 
-      // Save bot response to backend
-      await apiService.addMessage(currentSessionId, {
-        text: botResponseText,
-        sender: 'bot',
-        messageType: 'text'
-      });
+      // Save bot response to backend if we have a session
+      if (sessionId) {
+        try {
+          await apiService.addMessage(sessionId, {
+            text: botResponseText,
+            sender: 'bot',
+            messageType: 'text'
+          });
+        } catch (messageError) {
+          console.error('Failed to save bot message:', messageError);
+        }
+      }
 
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -220,15 +274,16 @@ const ChatBot = () => {
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Describe your symptoms or ask a health question..."
+                placeholder={isAuthenticated ? "Describe your symptoms or ask a health question..." : "Please log in to use the chatbot"}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 className="flex-1 medical-card"
+                disabled={!isAuthenticated}
               />
               <Button 
                 onClick={handleSendMessage}
                 variant="hero"
                 size="icon"
-                disabled={!inputMessage.trim() || isLoading}
+                disabled={!inputMessage.trim() || isLoading || !isAuthenticated}
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
